@@ -325,6 +325,9 @@ For deeper understanding:
     set result {}
     dict set result Content-Length 0
     foreach {key} $data(mimeorder) {
+      if {[string tolower $key] eq "content-length"} {
+        set key "Content-Length"
+      }
       dict set result $key $data(mime,$key)
     }
     return $result

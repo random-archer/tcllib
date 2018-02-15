@@ -153,11 +153,11 @@
       CONTENT_LENGTH 0
     }
     foreach {key} $data(mimeorder) {
-      switch $key {
-        Content-Length {
+      switch [string tolower $key] {
+        content-length {
           dict set result CONTENT_LENGTH $data(mime,$key)
         }
-        Content-Type {
+        content-type {
           dict set result CONTENT_TYPE $data(mime,$key)
         }
         default {
@@ -278,7 +278,7 @@ tool::define ::httpd::server.scgi {
           puts $sock "Status: 404 NOT FOUND"
           dict with query {}
           set body [subst [my template notfound]]
-          puts $sock "Content-length: [string length $body]"
+          puts $sock "Content-Length: [string length $body]"
           puts $sock {}
           puts $sock $body
         } on error {err errdat} {
@@ -293,7 +293,7 @@ tool::define ::httpd::server.scgi {
         puts $sock "Status: 505 INTERNAL ERROR - scgi 298"
         dict with query {}
         set body [subst [my template internal_error]]
-        puts $sock "Content-length: [string length $body]"
+        puts $sock "Content-Length: [string length $body]"
         puts $sock {}
         puts $sock $body
         my log HttpError $REQUEST_URI

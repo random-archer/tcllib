@@ -4,9 +4,9 @@
 # build.tcl
 ###
 package require Tcl 8.6
-package provide httpd 4.1.0
+package provide httpd 4.1.1
 namespace eval ::httpd {}
-set ::httpd::version 4.1.0
+set ::httpd::version 4.1.1
 
 ###
 # START: core.tcl
@@ -378,6 +378,9 @@ For deeper understanding:
     set result {}
     dict set result Content-Length 0
     foreach {key} $data(mimeorder) {
+      if {[string tolower $key] eq "content-length"} {
+        set key "Content-Length"
+      }
       dict set result $key $data(mime,$key)
     }
     return $result
@@ -582,7 +585,7 @@ For deeper understanding:
           chan puts $sock "HTTP/1.0 404 NOT FOUND"
           dict with query {}
           set body [subst [my template notfound]]
-          chan puts $sock "Content-length: [string length $body]"
+          chan puts $sock "Content-Length: [string length $body]"
           chan puts $sock {}
           chan puts $sock $body
         } on error {err errdat} {
@@ -598,7 +601,7 @@ For deeper understanding:
         chan puts $sock "HTTP/1.0 505 INTERNAL ERROR - server 119"
         dict with query {}
         set body [subst [my template internal_error]]
-        chan puts $sock "Content-length: [string length $body]"
+        chan puts $sock "Content-Length: [string length $body]"
         chan puts $sock {}
         chan puts $sock $body
         my log HttpError $line
@@ -1117,11 +1120,11 @@ The page you are looking for: <b>${REQUEST_URI}</b> does not exist.
       CONTENT_LENGTH 0
     }
     foreach {key} $data(mimeorder) {
-      switch $key {
-        Content-Length {
+      switch [string tolower $key] {
+        content-length {
           dict set result CONTENT_LENGTH $data(mime,$key)
         }
-        Content-Type {
+        content-type {
           dict set result CONTENT_TYPE $data(mime,$key)
         }
         default {
@@ -1242,7 +1245,7 @@ tool::define ::httpd::server.scgi {
           puts $sock "Status: 404 NOT FOUND"
           dict with query {}
           set body [subst [my template notfound]]
-          puts $sock "Content-length: [string length $body]"
+          puts $sock "Content-Length: [string length $body]"
           puts $sock {}
           puts $sock $body
         } on error {err errdat} {
@@ -1257,7 +1260,7 @@ tool::define ::httpd::server.scgi {
         puts $sock "Status: 505 INTERNAL ERROR - scgi 298"
         dict with query {}
         set body [subst [my template internal_error]]
-        puts $sock "Content-length: [string length $body]"
+        puts $sock "Content-Length: [string length $body]"
         puts $sock {}
         puts $sock $body
         my log HttpError $REQUEST_URI
@@ -1302,6 +1305,7 @@ tool::define ::httpd::server.scgi {
     if {$sockinfo eq {}} {
       tailcall my error 404 {Not Found}
     }
+
     lassign $sockinfo proxyhost proxyport proxyscript
     set sock [::socket $proxyhost $proxyport]
 
